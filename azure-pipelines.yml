@@ -1,19 +1,69 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
-trigger:
-- main
-
 pool:
   vmImage: ubuntu-latest
+stages:
+- stage: Build 
+  jobs:
+  - job: build
+    displayName: 'Build'
+    steps:
+    - task: Gradle@3
+      inputs:
+        gradleWrapperFile: 'gradlew'
+        tasks: 'build'
+        publishJUnitResults: true
+        testResultsFiles: '**/TEST-*.xml'
+        javaHomeOption: 'JDKVersion'
+        sonarQubeRunAnalysis: false
+        spotBugsAnalysis: false
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: '$(Build.SourcesDirectory)'
+        contents: |
+            **/build/libs/*.jar
+        targetFolder: '$(Build.ArtifactStagingDirectory)'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: appJar
+        publishLocation: 'Container'
+
+#- job: horusec
+#  workspace:
+#    clean: all
+#  displayName: Horusec
+#  steps:
+#    - script: |
+#        curl -fsSL https://raw.githubusercontent.com/ZupIT/horusec/main/deployments/scripts/install.sh | bash -s latest
+#        horusec start -p ./src   
+- stage: Test 
+  jobs:
+  - job: sonar
+    workspace:
+      clean: all
+    displayName:  Code Review
+    steps:
+      - task: SonarCloudPrepare@1
+        inputs:
+          SonarCloud: 'Sonarcloud'
+          organization: 'cl-usach-diplomados-rolivares'
+          projectKey: 'devsecops-foundation-rolivares'
+          projectName: 'devsecops-foundation-rolivares'
+        displayName: 'Preparing Sonarqube Environment'
+    
+      - task: Gradle@3
+        inputs:
+          gradleWrapperFile: 'gradlew'
+          tasks: "sonarqube"
+          javaHomeOption: 'JDKVersion'
+          sonarQubeRunAnalysis: true
+          sqGradlePluginVersionChoice: 'specify'
+          sonarQubeGradlePluginVersion: '3.3'
+        displayName: 'Analyze current Branch'
+    
+  
+      - task: SonarCloudPublish@1
+        inputs:
+          pollingTimeoutSec: '300'
+        displayName: 'Publish Analysis Results'
