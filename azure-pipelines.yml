@@ -46,7 +46,7 @@ stages:
     steps:
       - task: SonarCloudPrepare@1
         inputs:
-          SonarCloud: 'Sonarcloud'
+          SonarCloud: 'SonarDevSecOps'
           organization: 'cl-usach-diplomados-rolivares'
           projectKey: 'devsecops-foundation-rolivares'
           projectName: 'devsecops-foundation-rolivares'
