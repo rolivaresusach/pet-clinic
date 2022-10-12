@@ -96,18 +96,16 @@ stages:
         repository: 'devsecops'
         command: 'build'
         Dockerfile: '**/Dockerfile'
-        tags: |
-          latest
-          $(Build.BuildId)
+        tags: latest
     - task: Docker@2
       displayName: Docker push
       inputs:
         containerRegistry: 'DockerRolivares'
         repository: 'devsecops'
         command: 'push'
-        tags: |
-          latest
-          $(Build.BuildId)
+        tags: latest
+
+
 
 
 
