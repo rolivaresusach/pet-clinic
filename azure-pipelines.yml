@@ -109,8 +109,5 @@ stages:
           latest
           $(Build.BuildId)
 
-  - job: Kubernetes
-    displayName: Deploy
-    steps:
 
 
