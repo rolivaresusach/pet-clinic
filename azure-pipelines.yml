@@ -87,27 +87,23 @@ stages:
 
     - task: Docker@2
       inputs:
-        containerRegistry: 'Docker'
-        command: 'logout'
-
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'Docker'
+        containerRegistry: 'DockerRolivares'
         command: 'login'
+      displayName: Docker registry login
 
     - task: Docker@2
       inputs:
-        containerRegistry: 'Docker'
-        repository: 'devsecops-lab'
+        containerRegistry: 'DockerRolivares'
+        repository: 'rolivaresdiplomados/devsecops-public'
         command: 'build'
         Dockerfile: '**/Dockerfile'
-        tags: latest
+        tags: 'latest'
 
     - task: Docker@2
       displayName: Docker push
       inputs:
-        containerRegistry: 'Docker'
-        repository: 'devsecops-lab'
+        containerRegistry: 'DockerRolivares'
+        repository: 'rolivaresdiplomados/devsecops-public'
         command: 'push'
         tags: latest
 
