@@ -27,10 +27,10 @@ stages:
       inputs:
         pathToPublish: '$(Build.ArtifactStagingDirectory)'
         artifactName: appJar
-        publishLocation: 'Container'
+        publishLocation: 'Container'    
 
-# - stage: Test 
-#   jobs:
+- stage: Test 
+  jobs:
 #   - job: sonar
 #     workspace:
 #       clean: all
@@ -60,54 +60,60 @@ stages:
 #           pollingTimeoutSec: '300'
 #         displayName: 'Publish Analysis Results'
 
-#   - job: sca
+    - job: sca
+      steps:
+      - task: dependency-check-build-task@6
+        inputs:
+          projectName: 'pet-clinic'
+          scanPath: '$(Pipeline.Workspace)'
+          format: 'HTML'
+        displayName: SCA
+
+    - job: snyk
+      steps:
+        - task: SnykSecurityScan@1
+          inputs:
+            serviceConnectionEndpoint: 'SnykRolivares'
+            testType: 'app'
+            monitorWhen: 'always'
+            failOnIssues: false
+
+# - stage: Deploy 
+#   jobs:  
+#   - job: buildimage
+#     displayName:  Build Image
 #     steps:
-#      - task: dependency-check-build-task@6
-#        inputs:
-#          projectName: 'pet-clinic'
-#          scanPath: '$(Pipeline.Workspace)'
-#          format: 'HTML'
-#        displayName: SCA
-
-- stage: Deploy 
-  jobs:  
-  - job: buildimage
-    displayName:  Build Image
-    steps:
-    - task: DownloadBuildArtifacts@0
-      inputs:
-        buildType: 'current'
-        downloadType: 'single'
-        artifactName: 'appJar'
-        downloadPath: '$(Pipeline.Workspace)'
-      displayName: Descarga Jar
+#     - task: DownloadBuildArtifacts@0
+#       inputs:
+#         buildType: 'current'
+#         downloadType: 'single'
+#         artifactName: 'appJar'
+#         downloadPath: '$(Pipeline.Workspace)'
+#       displayName: Descarga Jar
     
-    - script: "mkdir -p build/libs; mv $(Pipeline.Workspace)/appJar/build/libs/ build/; chmod -R 555 build/libs"  
-      displayName:  Se mueve JAR a carpeta raiz
+#     - script: "mkdir -p build/libs; mv $(Pipeline.Workspace)/appJar/build/libs/ build/; chmod -R 555 build/libs"  
+#       displayName:  Se mueve JAR a carpeta raiz
 
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'DockerRolivares'
-        command: 'login'
-      displayName: Docker registry login
+#     - task: Docker@2
+#       inputs:
+#         containerRegistry: 'DockerRolivares'
+#         command: 'login'
+#       displayName: Docker registry login
 
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'DockerRolivares'
-        repository: 'rolivaresdiplomados/devsecops-public'
-        command: 'build'
-        Dockerfile: '**/Dockerfile'
-        tags: 'latest'
+#     - task: Docker@2
+#       inputs:
+#         containerRegistry: 'DockerRolivares'
+#         repository: 'rolivaresdiplomados/devsecops-public'
+#         command: 'build'
+#         Dockerfile: '**/Dockerfile'
+#         tags: 'latest'
 
-    - task: Docker@2
-      displayName: Docker push
-      inputs:
-        containerRegistry: 'DockerRolivares'
-        repository: 'rolivaresdiplomados/devsecops-public'
-        command: 'push'
-        tags: latest
-
-
-
+#     - task: Docker@2
+#       displayName: Docker push
+#       inputs:
+#         containerRegistry: 'DockerRolivares'
+#         repository: 'rolivaresdiplomados/devsecops-public'
+#         command: 'push'
+#         tags: latest
 
 
