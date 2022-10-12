@@ -29,45 +29,45 @@ stages:
         artifactName: appJar
         publishLocation: 'Container'
 
-- stage: Test 
-  jobs:
-  - job: sonar
-    workspace:
-      clean: all
-    displayName:  Code Review
-    steps:
-      - task: SonarCloudPrepare@1
-        inputs:
-          SonarCloud: 'SonarDevSecOps'
-          organization: 'cl-usach-diplomados-rolivares'
-          projectKey: 'devsecops-foundation-rolivares'
-          projectName: 'devsecops-foundation-rolivares'
-        displayName: 'Preparing Sonarqube Environment'
+# - stage: Test 
+#   jobs:
+#   - job: sonar
+#     workspace:
+#       clean: all
+#     displayName:  Code Review
+#     steps:
+#       - task: SonarCloudPrepare@1
+#         inputs:
+#           SonarCloud: 'SonarDevSecOps'
+#           organization: 'cl-usach-diplomados-rolivares'
+#           projectKey: 'devsecops-foundation-rolivares'
+#           projectName: 'devsecops-foundation-rolivares'
+#         displayName: 'Preparing Sonarqube Environment'
     
-      - task: Gradle@3
-        inputs:
-          gradleWrapperFile: 'gradlew'
-          tasks: "sonarqube"
-          javaHomeOption: 'JDKVersion'
-          sonarQubeRunAnalysis: true
-          sqGradlePluginVersionChoice: 'specify'
-          sonarQubeGradlePluginVersion: '3.3'
-        displayName: 'Analyze current Branch'
+#       - task: Gradle@3
+#         inputs:
+#           gradleWrapperFile: 'gradlew'
+#           tasks: "sonarqube"
+#           javaHomeOption: 'JDKVersion'
+#           sonarQubeRunAnalysis: true
+#           sqGradlePluginVersionChoice: 'specify'
+#           sonarQubeGradlePluginVersion: '3.3'
+#         displayName: 'Analyze current Branch'
     
   
-      - task: SonarCloudPublish@1
-        inputs:
-          pollingTimeoutSec: '300'
-        displayName: 'Publish Analysis Results'
+#       - task: SonarCloudPublish@1
+#         inputs:
+#           pollingTimeoutSec: '300'
+#         displayName: 'Publish Analysis Results'
 
-  - job: sca
-    steps:
-     - task: dependency-check-build-task@6
-       inputs:
-         projectName: 'pet-clinic'
-         scanPath: '$(Pipeline.Workspace)'
-         format: 'HTML'
-       displayName: SCA
+#   - job: sca
+#     steps:
+#      - task: dependency-check-build-task@6
+#        inputs:
+#          projectName: 'pet-clinic'
+#          scanPath: '$(Pipeline.Workspace)'
+#          format: 'HTML'
+#        displayName: SCA
 
 - stage: Deploy 
   jobs:  
@@ -102,6 +102,7 @@ stages:
         command: 'build'
         Dockerfile: '**/Dockerfile'
         tags: latest
+
     - task: Docker@2
       displayName: Docker push
       inputs:
