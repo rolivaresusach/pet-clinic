@@ -76,3 +76,41 @@ stages:
          scanPath: '$(Pipeline.Workspace)'
          format: 'HTML'
        displayName: SCA
+
+- stage: Deploy 
+  jobs:  
+  - job: buildimage
+    displayName:  Build Image
+    steps:
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'appJar'
+        downloadPath: '$(Pipeline.Workspace)'
+      displayName: Descarga Jar
+    
+    - script: "mkdir -p build/libs; mv $(Pipeline.Workspace)/appJar/build/libs/ build/; chmod -R 555 build/libs"  
+      displayName:  Se mueve JAR a carpeta raiz
+    
+    #- script: | 
+      # sudo apt-get install -y rpm
+      # wget https://github.com/aquasecurity/trivy/releases/download/v0.27.1/trivy_0.27.1_Linux-64bit.deb
+      # sudo dpkg -i trivy_0.27.1_Linux-64bit.deb
+      # trivy config $(Pipeline.Workspace)
+      #displayName: Kubernetes YAML Scan
+
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'DockerRolivares'
+        command: 'login'
+    
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'DockerRolivares'
+        repository: 'devsecops'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          latest
+          $(Build.BuildId)
