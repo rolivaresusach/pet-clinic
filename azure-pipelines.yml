@@ -93,7 +93,7 @@ stages:
     - task: Docker@2
       inputs:
         containerRegistry: 'DockerRolivares'
-        repository: 'devsecops'
+        repository: 'devsecops-lab'
         command: 'build'
         Dockerfile: '**/Dockerfile'
         tags: latest
@@ -101,7 +101,7 @@ stages:
       displayName: Docker push
       inputs:
         containerRegistry: 'DockerRolivares'
-        repository: 'devsecops'
+        repository: 'devsecops-lab'
         command: 'push'
         tags: latest
 
