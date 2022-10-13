@@ -116,7 +116,6 @@ stages:
 
       - job: Kubernetes
         displayName: Deploy
-        dependsOn: buildimage
         steps:
         - task: KubectlInstaller@0
           inputs:
