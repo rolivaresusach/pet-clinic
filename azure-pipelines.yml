@@ -72,7 +72,7 @@ stages:
       - task: dependency-check-build-task@6
         inputs:
           projectName: 'pet-clinic'
-          scanPath: '$(Pipeline.Workspace)/build/libs/spring-petclinic-2.6.0.jar'
+          scanPath: '$(Pipeline.Workspace)/appJar/build/libs/spring-petclinic-2.6.0.jar'
           format: 'HTML'
         displayName: SCA
 
