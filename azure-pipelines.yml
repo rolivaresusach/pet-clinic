@@ -1,118 +1,119 @@
 pool:
   vmImage: ubuntu-latest
 stages:
-- stage: Build 
-  jobs:
-  - job: build
-    displayName: 'Build'
-    steps:
-    - task: Gradle@3
-      inputs:
-        gradleWrapperFile: 'gradlew'
-        tasks: 'build'
-        publishJUnitResults: true
-        testResultsFiles: '**/TEST-*.xml'
-        javaHomeOption: 'JDKVersion'
-        sonarQubeRunAnalysis: false
-        spotBugsAnalysis: false
+  - stage: Build
+    jobs:
+      - job: build
+        displayName: 'Build'
+        steps:
+          - task: Gradle@3
+            inputs:
+              gradleWrapperFile: 'gradlew'
+              tasks: 'build'
+              publishJUnitResults: true
+              testResultsFiles: '**/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              sonarQubeRunAnalysis: false
+              spotBugsAnalysis: false
 
-    - task: CopyFiles@2
-      inputs:
-        sourceFolder: '$(Build.SourcesDirectory)'
-        contents: |
-            **/build/libs/*.jar
-        targetFolder: '$(Build.ArtifactStagingDirectory)'
+          - task: CopyFiles@2
+            inputs:
+              sourceFolder: '$(Build.SourcesDirectory)'
+              contents: |
+                **/build/libs/*.jar
+              targetFolder: '$(Build.ArtifactStagingDirectory)'
 
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathToPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: appJar
-        publishLocation: 'Container'    
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(Build.ArtifactStagingDirectory)'
+              artifactName: appJar
+              publishLocation: 'Container'
 
-- stage: Test 
-  jobs:
-#   - job: sonar
-#     workspace:
-#       clean: all
-#     displayName:  Code Review
-#     steps:
-#       - task: SonarCloudPrepare@1
-#         inputs:
-#           SonarCloud: 'SonarDevSecOps'
-#           organization: 'cl-usach-diplomados-rolivares'
-#           projectKey: 'devsecops-foundation-rolivares'
-#           projectName: 'devsecops-foundation-rolivares'
-#         displayName: 'Preparing Sonarqube Environment'
-    
-#       - task: Gradle@3
-#         inputs:
-#           gradleWrapperFile: 'gradlew'
-#           tasks: "sonarqube"
-#           javaHomeOption: 'JDKVersion'
-#           sonarQubeRunAnalysis: true
-#           sqGradlePluginVersionChoice: 'specify'
-#           sonarQubeGradlePluginVersion: '3.3'
-#         displayName: 'Analyze current Branch'
-    
-  
-#       - task: SonarCloudPublish@1
-#         inputs:
-#           pollingTimeoutSec: '300'
-#         displayName: 'Publish Analysis Results'
+  - stage: Test
+    jobs:
+      - job: sonar
+        workspace:
+          clean: all
+        displayName: Code Review
+        steps:
+          - task: SonarCloudPrepare@1
+            inputs:
+              SonarCloud: 'SonarDevSecOps'
+              organization: 'cl-usach-diplomados-rolivares'
+              projectKey: 'devsecops-foundation-rolivares'
+              projectName: 'devsecops-foundation-rolivares'
+            displayName: 'Preparing Sonarqube Environment'
 
-    - job: sca
-      steps:
-      - task: DownloadBuildArtifacts@0
-        inputs:
-          buildType: 'current'
-          downloadType: 'single'
-          artifactName: 'appJar'
-          downloadPath: '$(Pipeline.Workspace)'
-        displayName: Descarga Jar
-      - task: dependency-check-build-task@6
-        inputs:
-          projectName: 'pet-clinic'
-          scanPath: '$(Pipeline.Workspace)/appJar/build/libs/spring-petclinic-2.6.0.jar'
-          format: 'HTML'
-        displayName: SCA
+          - task: Gradle@3
+            inputs:
+              gradleWrapperFile: 'gradlew'
+              tasks: 'sonarqube'
+              javaHomeOption: 'JDKVersion'
+              sonarQubeRunAnalysis: true
+              sqGradlePluginVersionChoice: 'specify'
+              sonarQubeGradlePluginVersion: '3.3'
+            displayName: 'Analyze current Branch'
+
+          - task: SonarCloudPublish@1
+            inputs:
+              pollingTimeoutSec: '300'
+            displayName: 'Publish Analysis Results'
+
+      - job: sca
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'appJar'
+              downloadPath: '$(Pipeline.Workspace)'
+            displayName: Descarga Jar
+
+          - task: dependency-check-build-task@6
+            inputs:
+              projectName: 'pet-clinic'
+              scanPath: '$(Pipeline.Workspace)/appJar/build/libs/spring-petclinic-2.6.0.jar'
+              format: 'HTML'
+            displayName: SCA
+
+  - stage: Deploy
+    jobs:
+      - job: buildimage
+        displayName: Build Image
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'appJar'
+              downloadPath: '$(Pipeline.Workspace)'
+            displayName: Descarga Jar
+
+          - script: 'mkdir -p build/libs; mv $(Pipeline.Workspace)/appJar/build/libs/ build/; chmod -R 555 build/libs'
+            displayName: Se mueve JAR a carpeta raiz
+
+          - task: Docker@2
+            inputs:
+              containerRegistry: 'DockerRolivares'
+              command: 'login'
+            displayName: Docker registry login
+
+          - task: Docker@2
+            inputs:
+              containerRegistry: 'DockerRolivares'
+              repository: 'rolivaresdiplomados/devsecops-public'
+              command: 'build'
+              Dockerfile: '**/Dockerfile'
+              tags: 'latest'
+
+          - task: Docker@2
+            displayName: Docker push
+            inputs:
+              containerRegistry: 'DockerRolivares'
+              repository: 'rolivaresdiplomados/devsecops-public'
+              command: 'push'
+              tags: latest
 
 
-# - stage: Deploy 
-#   jobs:  
-#   - job: buildimage
-#     displayName:  Build Image
-#     steps:
-#     - task: DownloadBuildArtifacts@0
-#       inputs:
-#         buildType: 'current'
-#         downloadType: 'single'
-#         artifactName: 'appJar'
-#         downloadPath: '$(Pipeline.Workspace)'
-#       displayName: Descarga Jar
-    
-#     - script: "mkdir -p build/libs; mv $(Pipeline.Workspace)/appJar/build/libs/ build/; chmod -R 555 build/libs"  
-#       displayName:  Se mueve JAR a carpeta raiz
 
-#     - task: Docker@2
-#       inputs:
-#         containerRegistry: 'DockerRolivares'
-#         command: 'login'
-#       displayName: Docker registry login
-
-#     - task: Docker@2
-#       inputs:
-#         containerRegistry: 'DockerRolivares'
-#         repository: 'rolivaresdiplomados/devsecops-public'
-#         command: 'build'
-#         Dockerfile: '**/Dockerfile'
-#         tags: 'latest'
-
-#     - task: Docker@2
-#       displayName: Docker push
-#       inputs:
-#         containerRegistry: 'DockerRolivares'
-#         repository: 'rolivaresdiplomados/devsecops-public'
-#         command: 'push'
-#         tags: latest
-
-
+              
