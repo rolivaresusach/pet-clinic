@@ -62,10 +62,17 @@ stages:
 
     - job: sca
       steps:
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'appJar'
+          downloadPath: '$(Pipeline.Workspace)'
+        displayName: Descarga Jar
       - task: dependency-check-build-task@6
         inputs:
           projectName: 'pet-clinic'
-          scanPath: '$(Pipeline.Workspace)/**/*.jar'
+          scanPath: '$(Pipeline.Workspace)/build/libs/spring-petclinic-2.6.0.jar'
           format: 'HTML'
         displayName: SCA
 
