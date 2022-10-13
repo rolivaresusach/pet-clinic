@@ -65,18 +65,10 @@ stages:
       - task: dependency-check-build-task@6
         inputs:
           projectName: 'pet-clinic'
-          scanPath: '$(Pipeline.Workspace)'
+          scanPath: '$(Pipeline.Workspace)/**/*.jar'
           format: 'HTML'
         displayName: SCA
 
-    - job: snyk
-      steps:
-        - task: SnykSecurityScan@1
-          inputs:
-            serviceConnectionEndpoint: 'SnykRolivares'
-            testType: 'app'
-            monitorWhen: 'always'
-            failOnIssues: false
 
 # - stage: Deploy 
 #   jobs:  
