@@ -170,6 +170,7 @@ stages:
               echo "##vso[task.setvariable variable=appDeploy;isOutput=true]$URLApp"
 
   - stage: DAST
+    dependsOn: Deploy
     jobs:
       - job: DAST
         steps:
