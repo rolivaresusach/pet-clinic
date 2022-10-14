@@ -135,7 +135,7 @@ stages:
         - task: Kubernetes@1
           inputs:
             connectionType: 'Azure Resource Manager'
-            azureSubscriptionEndpoint: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+            azureSubscriptionEndpoint: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
             azureResourceGroup: 'devsecops'
             kubernetesCluster: 'devsecops-kubernetes'
             namespace: 'default'
@@ -143,13 +143,13 @@ stages:
             arguments: '-f kubernetes/deployment-app.yaml'
             secretType: 'dockerRegistry'
             containerRegistryType: 'Azure Container Registry'
-            azureSubscriptionEndpointForSecrets: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+            azureSubscriptionEndpointForSecrets: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
           displayName: AKS deploy
 
         - task: Kubernetes@1
           inputs:
             connectionType: 'Azure Resource Manager'
-            azureSubscriptionEndpoint: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+            azureSubscriptionEndpoint: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
             azureResourceGroup: 'devsecops'
             kubernetesCluster: 'devsecops-kubernetes'
             namespace: 'default'
@@ -157,7 +157,7 @@ stages:
             arguments: 'deployment petclinic-deployment --type=LoadBalancer --name=pet-clinic'
             secretType: 'dockerRegistry'
             containerRegistryType: 'Azure Container Registry'
-            azureSubscriptionEndpointForSecrets: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+            azureSubscriptionEndpointForSecrets: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
           continueOnError: true
           displayName: Expose deployment
 
