@@ -76,8 +76,8 @@ stages:
   #             format: 'HTML'
   #           displayName: SCA
 
-  - stage: Deploy
-    jobs:
+  # - stage: Deploy
+  #   jobs:
       # - job: buildimage
       #   displayName: Build Image
       #   steps:
@@ -114,61 +114,70 @@ stages:
       #         command: 'push'
       #         tags: latest
 
-      - job: Kubernetes
-        displayName: Deploy
-        steps:
-        - task: KubectlInstaller@0
-          inputs:
-            kubectlVersion: 'latest'
-          displayName: Instalacion Kubectl
+      # - job: Kubernetes
+      #   displayName: Deploy
+      #   steps:
+      #   - task: KubectlInstaller@0
+      #     inputs:
+      #       kubectlVersion: 'latest'
+      #     displayName: Instalacion Kubectl
 
-        - task: Kubernetes@1
-          inputs:
-            connectionType: 'Azure Resource Manager'
-            azureSubscriptionEndpoint: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
-            azureResourceGroup: 'devsecops'
-            kubernetesCluster: 'devsecops-kubernetes'
-            namespace: 'default'
-            command: 'login'
-          displayName: AKS Login
+      #   - task: Kubernetes@1
+      #     inputs:
+      #       connectionType: 'Azure Resource Manager'
+      #       azureSubscriptionEndpoint: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+      #       azureResourceGroup: 'devsecops'
+      #       kubernetesCluster: 'devsecops-kubernetes'
+      #       namespace: 'default'
+      #       command: 'login'
+      #     displayName: AKS Login
           
-        - task: Kubernetes@1
+      #   - task: Kubernetes@1
+      #     inputs:
+      #       connectionType: 'Azure Resource Manager'
+      #       azureSubscriptionEndpoint: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+      #       azureResourceGroup: 'devsecops'
+      #       kubernetesCluster: 'devsecops-kubernetes'
+      #       namespace: 'default'
+      #       command: 'apply'
+      #       arguments: '-f kubernetes/deployment-app.yaml'
+      #       secretType: 'dockerRegistry'
+      #       containerRegistryType: 'Azure Container Registry'
+      #       azureSubscriptionEndpointForSecrets: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+      #     displayName: AKS deploy
+
+      #   - task: Kubernetes@1
+      #     inputs:
+      #       connectionType: 'Azure Resource Manager'
+      #       azureSubscriptionEndpoint: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+      #       azureResourceGroup: 'devsecops'
+      #       kubernetesCluster: 'devsecops-kubernetes'
+      #       namespace: 'default'
+      #       command: 'expose'
+      #       arguments: 'deployment petclinic-deployment --type=LoadBalancer --name=pet-clinic'
+      #       secretType: 'dockerRegistry'
+      #       containerRegistryType: 'Azure Container Registry'
+      #       azureSubscriptionEndpointForSecrets: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+      #     continueOnError: true
+      #     displayName: Expose deployment
+
+
+      #   - script: |
+      #         ipApp=$(kubectl get services pet-clinic --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+      #         echo $ipApp
+      #         URLApp=http://$ipApp:8085
+      #         echo $URLApp
+      #         echo "##vso[task.setvariable variable=appDeploy;isOutput=true]$URLApp"
+
+  - stage: DAST
+    jobs:
+      - job: DAST
+        steps:    
+        - task: owaspzap@1
           inputs:
-            connectionType: 'Azure Resource Manager'
-            azureSubscriptionEndpoint: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
-            azureResourceGroup: 'devsecops'
-            kubernetesCluster: 'devsecops-kubernetes'
-            namespace: 'default'
-            command: 'apply'
-            arguments: '-f kubernetes/deployment-app.yaml'
-            secretType: 'dockerRegistry'
-            containerRegistryType: 'Azure Container Registry'
-            azureSubscriptionEndpointForSecrets: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
-          displayName: AKS deploy
-
-        - task: Kubernetes@1
-          inputs:
-            connectionType: 'Azure Resource Manager'
-            azureSubscriptionEndpoint: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
-            azureResourceGroup: 'devsecops'
-            kubernetesCluster: 'devsecops-kubernetes'
-            namespace: 'default'
-            command: 'expose'
-            arguments: 'deployment petclinic-deployment --type=LoadBalancer --name=pet-clinic'
-            secretType: 'dockerRegistry'
-            containerRegistryType: 'Azure Container Registry'
-            azureSubscriptionEndpointForSecrets: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
-          continueOnError: true
-          displayName: Expose deployment
-
-
-        - script: |
-              ipApp=$(kubectl get services pet-clinic --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
-              echo $ipApp
-              URLApp=http://$ipApp:8085
-              echo $URLApp
-              echo "##vso[task.setvariable variable=appDeploy;isOutput=true]$URLApp"
-
+            scantype: 'targetedScan'
+            url: 'http://20.62.141.38'
+            port: '8085'
 
 
 
