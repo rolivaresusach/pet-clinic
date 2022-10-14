@@ -1,183 +1,180 @@
 pool:
   vmImage: ubuntu-latest
 stages:
-  # - stage: Build
-  #   jobs:
-  #     - job: build
-  #       displayName: 'Build'
-  #       steps:
-  #         - task: Gradle@3
-  #           inputs:
-  #             gradleWrapperFile: 'gradlew'
-  #             tasks: 'build'
-  #             publishJUnitResults: true
-  #             testResultsFiles: '**/TEST-*.xml'
-  #             javaHomeOption: 'JDKVersion'
-  #             sonarQubeRunAnalysis: false
-  #             spotBugsAnalysis: false
+  - stage: Build
+    jobs:
+      - job: build
+        displayName: 'Build'
+        steps:
+          - task: Gradle@3
+            inputs:
+              gradleWrapperFile: 'gradlew'
+              tasks: 'build'
+              publishJUnitResults: true
+              testResultsFiles: '**/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              sonarQubeRunAnalysis: false
+              spotBugsAnalysis: false
 
-  #         - task: CopyFiles@2
-  #           inputs:
-  #             sourceFolder: '$(Build.SourcesDirectory)'
-  #             contents: |
-  #               **/build/libs/*.jar
-  #             targetFolder: '$(Build.ArtifactStagingDirectory)'
+          - task: CopyFiles@2
+            inputs:
+              sourceFolder: '$(Build.SourcesDirectory)'
+              contents: |
+                **/build/libs/*.jar
+              targetFolder: '$(Build.ArtifactStagingDirectory)'
 
-  #         - task: PublishBuildArtifacts@1
-  #           inputs:
-  #             pathToPublish: '$(Build.ArtifactStagingDirectory)'
-  #             artifactName: appJar
-  #             publishLocation: 'Container'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(Build.ArtifactStagingDirectory)'
+              artifactName: appJar
+              publishLocation: 'Container'
 
-  # - stage: Test
-  #   jobs:
-  #     - job: sonar
-  #       workspace:
-  #         clean: all
-  #       displayName: Code Review
-  #       steps:
-  #         - task: SonarCloudPrepare@1
-  #           inputs:
-  #             SonarCloud: 'SonarDevSecOps'
-  #             organization: 'cl-usach-diplomados-rolivares'
-  #             projectKey: 'devsecops-foundation-rolivares'
-  #             projectName: 'devsecops-foundation-rolivares'
-  #           displayName: 'Preparing Sonarqube Environment'
+  - stage: Test
+    jobs:
+      - job: sonar
+        workspace:
+          clean: all
+        displayName: Code Review
+        steps:
+          - task: SonarCloudPrepare@1
+            inputs:
+              SonarCloud: 'SonarDevSecOps'
+              organization: 'cl-usach-diplomados-rolivares'
+              projectKey: 'devsecops-foundation-rolivares'
+              projectName: 'devsecops-foundation-rolivares'
+            displayName: 'Preparing Sonarqube Environment'
 
-  #         - task: Gradle@3
-  #           inputs:
-  #             gradleWrapperFile: 'gradlew'
-  #             tasks: 'sonarqube'
-  #             javaHomeOption: 'JDKVersion'
-  #             sonarQubeRunAnalysis: true
-  #             sqGradlePluginVersionChoice: 'specify'
-  #             sonarQubeGradlePluginVersion: '3.3'
-  #           displayName: 'Analyze current Branch'
+          - task: Gradle@3
+            inputs:
+              gradleWrapperFile: 'gradlew'
+              tasks: 'sonarqube'
+              javaHomeOption: 'JDKVersion'
+              sonarQubeRunAnalysis: true
+              sqGradlePluginVersionChoice: 'specify'
+              sonarQubeGradlePluginVersion: '3.3'
+            displayName: 'Analyze current Branch'
 
-  #         - task: SonarCloudPublish@1
-  #           inputs:
-  #             pollingTimeoutSec: '300'
-  #           displayName: 'Publish Analysis Results'
+          - task: SonarCloudPublish@1
+            inputs:
+              pollingTimeoutSec: '300'
+            displayName: 'Publish Analysis Results'
 
-  #     - job: sca
-  #       steps:
-  #         - task: DownloadBuildArtifacts@0
-  #           inputs:
-  #             buildType: 'current'
-  #             downloadType: 'single'
-  #             artifactName: 'appJar'
-  #             downloadPath: '$(Pipeline.Workspace)'
-  #           displayName: Descarga Jar
+      - job: sca
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'appJar'
+              downloadPath: '$(Pipeline.Workspace)'
+            displayName: Descarga Jar
 
-  #         - task: dependency-check-build-task@6
-  #           inputs:
-  #             projectName: 'pet-clinic'
-  #             scanPath: '$(Pipeline.Workspace)/appJar/build/libs/spring-petclinic-2.6.0.jar'
-  #             format: 'HTML'
-  #           displayName: SCA
+          - task: dependency-check-build-task@6
+            inputs:
+              projectName: 'pet-clinic'
+              scanPath: '$(Pipeline.Workspace)/appJar/build/libs/spring-petclinic-2.6.0.jar'
+              format: 'HTML'
+            displayName: SCA
 
-  # - stage: Deploy
-  #   jobs:
-      # - job: buildimage
-      #   displayName: Build Image
-      #   steps:
-      #     - task: DownloadBuildArtifacts@0
-      #       inputs:
-      #         buildType: 'current'
-      #         downloadType: 'single'
-      #         artifactName: 'appJar'
-      #         downloadPath: '$(Pipeline.Workspace)'
-      #       displayName: Descarga Jar
+  - stage: Deploy
+    jobs:
+      - job: buildimage
+        displayName: Build Image
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'appJar'
+              downloadPath: '$(Pipeline.Workspace)'
+            displayName: Descarga Jar
 
-      #     - script: 'mkdir -p build/libs; mv $(Pipeline.Workspace)/appJar/build/libs/ build/; chmod -R 555 build/libs'
-      #       displayName: Se mueve JAR a carpeta raiz
+          - script: 'mkdir -p build/libs; mv $(Pipeline.Workspace)/appJar/build/libs/ build/; chmod -R 555 build/libs'
+            displayName: Se mueve JAR a carpeta raiz
 
-      #     - task: Docker@2
-      #       inputs:
-      #         containerRegistry: 'DockerRolivares'
-      #         command: 'login'
-      #       displayName: Docker registry login
+          - task: Docker@2
+            inputs:
+              containerRegistry: 'DockerRolivares'
+              command: 'login'
+            displayName: Docker registry login
 
-      #     - task: Docker@2
-      #       inputs:
-      #         containerRegistry: 'DockerRolivares'
-      #         repository: 'rolivaresdiplomados/devsecops-public'
-      #         command: 'build'
-      #         Dockerfile: '**/Dockerfile'
-      #         tags: 'latest'
+          - task: Docker@2
+            inputs:
+              containerRegistry: 'DockerRolivares'
+              repository: 'rolivaresdiplomados/devsecops-public'
+              command: 'build'
+              Dockerfile: '**/Dockerfile'
+              tags: 'latest'
 
-      #     - task: Docker@2
-      #       displayName: Docker push
-      #       inputs:
-      #         containerRegistry: 'DockerRolivares'
-      #         repository: 'rolivaresdiplomados/devsecops-public'
-      #         command: 'push'
-      #         tags: latest
+          - task: Docker@2
+            displayName: Docker push
+            inputs:
+              containerRegistry: 'DockerRolivares'
+              repository: 'rolivaresdiplomados/devsecops-public'
+              command: 'push'
+              tags: latest
 
-      # - job: Kubernetes
-      #   displayName: Deploy
-      #   steps:
-      #   - task: KubectlInstaller@0
-      #     inputs:
-      #       kubectlVersion: 'latest'
-      #     displayName: Instalacion Kubectl
+      - job: Kubernetes
+        displayName: Deploy
+        steps:
+          - task: KubectlInstaller@0
+            inputs:
+              kubectlVersion: 'latest'
+            displayName: Instalacion Kubectl
 
-      #   - task: Kubernetes@1
-      #     inputs:
-      #       connectionType: 'Azure Resource Manager'
-      #       azureSubscriptionEndpoint: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
-      #       azureResourceGroup: 'devsecops'
-      #       kubernetesCluster: 'devsecops-kubernetes'
-      #       namespace: 'default'
-      #       command: 'login'
-      #     displayName: AKS Login
-          
-      #   - task: Kubernetes@1
-      #     inputs:
-      #       connectionType: 'Azure Resource Manager'
-      #       azureSubscriptionEndpoint: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
-      #       azureResourceGroup: 'devsecops'
-      #       kubernetesCluster: 'devsecops-kubernetes'
-      #       namespace: 'default'
-      #       command: 'apply'
-      #       arguments: '-f kubernetes/deployment-app.yaml'
-      #       secretType: 'dockerRegistry'
-      #       containerRegistryType: 'Azure Container Registry'
-      #       azureSubscriptionEndpointForSecrets: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
-      #     displayName: AKS deploy
+          - task: Kubernetes@1
+            inputs:
+              connectionType: 'Azure Resource Manager'
+              azureSubscriptionEndpoint: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+              azureResourceGroup: 'devsecops'
+              kubernetesCluster: 'devsecops-kubernetes'
+              namespace: 'default'
+              command: 'login'
+            displayName: AKS Login
 
-      #   - task: Kubernetes@1
-      #     inputs:
-      #       connectionType: 'Azure Resource Manager'
-      #       azureSubscriptionEndpoint: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
-      #       azureResourceGroup: 'devsecops'
-      #       kubernetesCluster: 'devsecops-kubernetes'
-      #       namespace: 'default'
-      #       command: 'expose'
-      #       arguments: 'deployment petclinic-deployment --type=LoadBalancer --name=pet-clinic'
-      #       secretType: 'dockerRegistry'
-      #       containerRegistryType: 'Azure Container Registry'
-      #       azureSubscriptionEndpointForSecrets: 'Azure subscription 1(1)(466bb1af-53ab-4320-b72a-7ed8b321590b)'
-      #     continueOnError: true
-      #     displayName: Expose deployment
+          - task: Kubernetes@1
+            inputs:
+              connectionType: 'Azure Resource Manager'
+              azureSubscriptionEndpoint: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+              azureResourceGroup: 'devsecops'
+              kubernetesCluster: 'devsecops-kubernetes'
+              namespace: 'default'
+              command: 'apply'
+              arguments: '-f kubernetes/deployment-app.yaml'
+              secretType: 'dockerRegistry'
+              containerRegistryType: 'Azure Container Registry'
+              azureSubscriptionEndpointForSecrets: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+            displayName: AKS deploy
 
+          - task: Kubernetes@1
+            inputs:
+              connectionType: 'Azure Resource Manager'
+              azureSubscriptionEndpoint: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+              azureResourceGroup: 'devsecops'
+              kubernetesCluster: 'devsecops-kubernetes'
+              namespace: 'default'
+              command: 'expose'
+              arguments: 'deployment petclinic-deployment --type=LoadBalancer --name=pet-clinic'
+              secretType: 'dockerRegistry'
+              containerRegistryType: 'Azure Container Registry'
+              azureSubscriptionEndpointForSecrets: 'Azure subscription 1(466bb1af-53ab-4320-b72a-7ed8b321590b)'
+            continueOnError: true
+            displayName: Expose deployment
 
-      #   - script: |
-      #         ipApp=$(kubectl get services pet-clinic --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
-      #         echo $ipApp
-      #         URLApp=http://$ipApp:8085
-      #         echo $URLApp
-      #         echo "##vso[task.setvariable variable=appDeploy;isOutput=true]$URLApp"
+          - script: |
+              ipApp=$(kubectl get services pet-clinic --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+              echo $ipApp
+              URLApp=http://$ipApp:8085
+              echo $URLApp
+              echo "##vso[task.setvariable variable=appDeploy;isOutput=true]$URLApp"
 
   - stage: DAST
     jobs:
       - job: DAST
-        steps:    
-        - task: owaspzap@1
-          inputs:
-            scantype: 'targetedScan'
-            url: 'http://20.62.141.38'
-            port: '8085'
-
-
-
+        steps:
+          - task: owaspzap@1
+            inputs:
+              scantype: 'targetedScan'
+              url: 'http://20.62.141.38'
+              port: '8085'
+        continueOnError: true
